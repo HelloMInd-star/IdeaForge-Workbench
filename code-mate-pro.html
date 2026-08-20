@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code-Mate Pro · 代码分析器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a080c;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #b8a08a;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(14,11,16,0.6);
+            border: 1px solid rgba(167,139,250,0.08);
+            padding: 28px 32px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(167,139,250,0.06);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-weight: 300;
+            font-size: 28px;
+            letter-spacing: 8px;
+            color: #d4c0a8;
+        }
+        .header .sub {
+            font-size: 15px;
+            color: rgba(167,139,250,0.12);
+            letter-spacing: 3px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 20px 22px;
+        }
+        .panel-title {
+            font-size: 15px;
+            color: rgba(167,139,250,0.08);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            padding-bottom: 10px;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(167,139,250,0.12);
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 14px;
+            transition: 0.25s;
+            cursor: pointer;
+        }
+        .drop-zone:hover {
+            border-color: rgba(167,139,250,0.3);
+            background: rgba(20,16,24,0.4);
+        }
+        .drop-zone.dragover {
+            border-color: #A78BFA;
+            background: rgba(167,139,250,0.06);
+        }
+        .drop-zone .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .drop-zone .text { font-size: 15px; color: rgba(167,139,250,0.15); letter-spacing: 3px; }
+        .drop-zone .hint { font-size: 13px; color: rgba(167,139,250,0.06); margin-top: 6px; }
+
+        .code-panel {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 16px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow: auto;
+        }
+        .code-panel pre {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.9;
+            color: #8a7a6a;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .code-panel .line-num {
+            color: rgba(167,139,250,0.06);
+            margin-right: 14px;
+            user-select: none;
+            font-size: 13px;
+        }
+        .code-panel .highlight-line { background: rgba(167,139,250,0.04); }
+
+        .struct-panel {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 16px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow: auto;
+        }
+        .struct-panel .empty-state {
+            color: rgba(167,139,250,0.06);
+            font-size: 15px;
+            letter-spacing: 3px;
+            text-align: center;
+            padding: 60px 0;
+        }
+        .struct-item {
+            padding: 10px 14px;
+            border-left: 2px solid rgba(167,139,250,0.06);
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .struct-item:hover {
+            border-left-color: rgba(167,139,250,0.3);
+            background: rgba(20,16,24,0.4);
+        }
+        .struct-item .name {
+            font-size: 16px;
+            color: #d4c0a8;
+            letter-spacing: 1px;
+        }
+        .struct-item .type {
+            font-size: 13px;
+            color: rgba(167,139,250,0.12);
+            margin-left: 10px;
+            text-transform: uppercase;
+        }
+        .struct-item .desc {
+            font-size: 14px;
+            color: rgba(167,139,250,0.06);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .struct-item .line-ref {
+            font-size: 12px;
+            color: rgba(167,139,250,0.04);
+            float: right;
+        }
+        .struct-group {
+            margin-bottom: 14px;
+        }
+        .struct-group .group-title {
+            font-size: 13px;
+            color: rgba(167,139,250,0.06);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 4px 0 10px 0;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            margin-bottom: 8px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .btn {
+            background: none;
+            border: 1px solid rgba(167,139,250,0.04);
+            color: rgba(167,139,250,0.08);
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 3px;
+            transition: 0.2s;
+            font-family: 'Georgia', serif;
+        }
+        .btn:hover {
+            border-color: rgba(167,139,250,0.12);
+            color: rgba(167,139,250,0.2);
+        }
+        .btn-primary {
+            border-color: rgba(167,139,250,0.08);
+            color: rgba(167,139,250,0.12);
+        }
+        .btn-primary:hover {
+            border-color: rgba(167,139,250,0.2);
+            color: rgba(167,139,250,0.25);
+        }
+
+        .file-info {
+            font-size: 14px;
+            color: rgba(167,139,250,0.04);
+            letter-spacing: 2px;
+        }
+        .badge {
+            font-size: 12px;
+            color: rgba(167,139,250,0.04);
+            border: 1px solid rgba(167,139,250,0.02);
+            padding: 2px 10px;
+        }
+        .footer-tip {
+            margin-top: 20px;
+            border-top: 1px solid rgba(167,139,250,0.02);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 14px;
+            color: rgba(167,139,250,0.04);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <div class="header">
+        <h1>🛠️ Code-Mate Pro</h1>
+        <span class="sub">代码分析 · 拖入文件 · 导出结构</span>
+    </div>
+
+    <div class="drop-zone" id="dropZone">
+        <span class="icon">📂</span>
+        <div class="text">拖入代码文件 · 或点击选择</div>
+        <div class="hint">支持 .html .js .py .css .json .ts</div>
+        <input type="file" id="fileInput" style="display:none;" accept=".html,.js,.py,.css,.json,.ts,.txt" />
+    </div>
+
+    <div class="grid-2">
+        <div class="panel">
+            <div class="panel-title">📝 代码预览</div>
+            <div class="code-panel">
+                <pre id="codeDisplay"><span class="empty-state" style="display:block; text-align:center; padding:80px 0;">等待文件拖入…</span></pre>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-title">📋 结构解析</div>
+            <div class="struct-panel">
+                <div class="empty-state" id="emptyStruct">📋 解析后的结构将在此显示</div>
+                <div id="structContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-tip">
+        <span>
+            <span class="file-info" id="fileInfo">未加载文件</span>
+            <span class="badge" id="structCount"></span>
+        </span>
+        <span>
+            <button class="btn btn-primary" id="copyMDBtn">📋 复制 Markdown</button>
+            <button class="btn btn-primary" id="downloadMDBtn">⬇️ 下载 .md</button>
+            <button class="btn" id="copyStructBtn">📄 复制结构</button>
+        </span>
+    </div>
+
+</div>
+
+<script>
+    // ================================================================
+    //  Code-Mate Pro · 代码分析器（字体已调大）
+    // ================================================================
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const codeDisplay = document.getElementById('codeDisplay');
+    const structContent = document.getElementById('structContent');
+    const emptyStruct = document.getElementById('emptyStruct');
+    const fileInfo = document.getElementById('fileInfo');
+    const structCount = document.getElementById('structCount');
+
+    let currentFileName = '';
+    let currentContent = '';
+    let currentStructures = [];
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault();
+        dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target.result;
+            currentContent = content;
+            currentFileName = file.name;
+            fileInfo.textContent = `📄 ${file.name} · ${(content.length / 1024).toFixed(1)} KB`;
+
+            const lines = content.split('\n');
+            let html = '';
+            lines.forEach((line, i) => {
+                const num = (i + 1).toString().padStart(4, ' ');
+                html += `<span class="line-num">${num}</span>${escapeHtml(line)}\n`;
+            });
+            codeDisplay.innerHTML = html;
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const structures = parseContent(content, ext);
+            currentStructures = structures;
+            structCount.textContent = `📌 ${structures.length} 个结构项`;
+            renderStructures(structures);
+        };
+        reader.readAsText(file);
+    }
+
+    function parseContent(content, ext) {
+        const results = [];
+        const lines = content.split('\n');
+        const isJS = ['js', 'html', 'ts', 'jsx'].includes(ext);
+        const isPY = ext === 'py';
+        const isCSS = ext === 'css';
+        const isJSON = ext === 'json';
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const lineNum = i + 1;
+            if (isJS || ext === 'html') {
+                let match = line.match(/^function\s+(\w+)\s*\(/);
+                if (match) { results.push({ name: match[1], type: 'function', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^(?:const|let|var)\s+(\w+)\s*=\s*(?:\([^)]*\)|[^=]+)\s*=>/);
+                if (match) { results.push({ name: match[1], type: 'arrow-function', line: lineNum,
+                        snippet: line }); continue; }
+                match = line.match(/^class\s+(\w+)/);
+                if (match) { results.push({ name: match[1], type: 'class', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^(?:const|let|var)\s+(\w+)\s*=\s*\{/);
+                if (match) { results.push({ name: match[1], type: 'config/object', line: lineNum,
+                        snippet: line }); continue; }
+                match = line.match(/^(\w+)\s*\([^)]*\)\s*\{/);
+                if (match && !line.includes('function') && !line.includes('=>')) {
+                    results.push({ name: match[1], type: 'method', line: lineNum, snippet: line }); continue;
+                }
+            }
+            if (isPY) {
+                let match = line.match(/^def\s+(\w+)\s*\(/);
+                if (match) { results.push({ name: match[1], type: 'def', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^class\s+(\w+)/);
+                if (match) { results.push({ name: match[1], type: 'class', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^(\w+)\s*=\s*\{/);
+                if (match) { results.push({ name: match[1], type: 'dict/config', line: lineNum,
+                        snippet: line }); continue; }
+            }
+            if (isCSS) {
+                let match = line.match(/^\.(\w+)\s*\{/);
+                if (match) { results.push({ name: `.${match[1]}`, type: 'class', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^#(\w+)\s*\{/);
+                if (match) { results.push({ name: `#${match[1]}`, type: 'id', line: lineNum, snippet: line });
+                    continue; }
+                match = line.match(/^@keyframes\s+(\w+)/);
+                if (match) { results.push({ name: match[1], type: 'keyframes', line: lineNum, snippet: line });
+                    continue; }
+            }
+            if (isJSON) {
+                const match = line.match(/^"(\w+)"\s*:/);
+                if (match) { results.push({ name: match[1], type: 'key', line: lineNum, snippet: line });
+                    continue; }
+            }
+        }
+        results.sort((a, b) => a.line - b.line);
+        return results;
+    }
+
+    function renderStructures(structures) {
+        emptyStruct.style.display = 'none';
+        if (!structures || structures.length === 0) {
+            structContent.innerHTML = `<div class="empty-state" style="display:block;">未识别到可解析结构</div>`;
+            return;
+        }
+        const groups = {};
+        structures.forEach(s => { if (!groups[s.type]) groups[s.type] = [];
+            groups[s.type].push(s); });
+        const typeLabels = {
+            'function': '⚡ 函数',
+            'arrow-function': '➡ 箭头函数',
+            'class': '🧩 类',
+            'method': '🔧 方法',
+            'config/object': '📦 配置/对象',
+            'dict/config': '📦 配置',
+            'id': '🎯 ID选择器',
+            'keyframes': '🔄 动画',
+            'key': '🔑 键',
+            'def': '🐍 Python函数'
+        };
+        let html = '';
+        for (const [type, items] of Object.entries(groups)) {
+            const label = typeLabels[type] || type;
+            html += `<div class="struct-group">`;
+            html += `<div class="group-title">${label} (${items.length})</div>`;
+            items.forEach(s => {
+                const snippet = s.snippet ? s.snippet.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                html += `<div class="struct-item" data-line="${s.line}" data-name="${s.name}" data-type="${s.type}">`;
+                html += `<span class="name">${s.name}</span>`;
+                html += `<span class="type">${s.type}</span>`;
+                html += `<span class="line-ref">行 ${s.line}</span>`;
+                if (snippet) {
+                    html += `<div class="desc">${snippet.substring(0, 60)}${snippet.length > 60 ? '…' : ''}</div>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+        }
+        structContent.innerHTML = html;
+
+        document.querySelectorAll('.struct-item').forEach(el => {
+            el.addEventListener('click', function() {
+                const line = parseInt(this.dataset.line);
+                highlightLine(line);
+            });
+        });
+    }
+
+    function highlightLine(line) {
+        const lines = codeDisplay.querySelectorAll('span.line-num');
+        let target = null;
+        for (let el of lines) {
+            const num = parseInt(el.textContent.trim());
+            if (num === line) { target = el.parentElement; break; }
+        }
+        if (target) {
+            codeDisplay.querySelectorAll('.highlight-line').forEach(el => el.style.background = 'transparent');
+            target.style.background = 'rgba(167,139,250,0.04)';
+            target.classList.add('highlight-line');
+            target.scrollIntoView({ block: 'center' });
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function generateMarkdown() {
+        if (currentStructures.length === 0) return '暂无结构数据';
+        const now = new Date().toISOString().slice(0, 10);
+        let md = '---\n';
+        md += `title: 代码结构 · ${currentFileName}\n`;
+        md += `date: ${now}\n`;
+        md += `source: ${currentFileName}\n`;
+        md += `type: code-analysis\n`;
+        md += 'tags: [code, structure, analysis]\n';
+        md += '---\n\n';
+        md += `# 📄 ${currentFileName}\n\n`;
+        md += `> 自动生成于 Code-Mate Pro · 共 ${currentStructures.length} 个结构项\n\n`;
+
+        const groups = {};
+        currentStructures.forEach(s => { if (!groups[s.type]) groups[s.type] = [];
+            groups[s.type].push(s); });
+        const typeLabels = {
+            'function': '⚡ 函数',
+            'arrow-function': '➡ 箭头函数',
+            'class': '🧩 类',
+            'method': '🔧 方法',
+            'config/object': '📦 配置/对象',
+            'dict/config': '📦 配置',
+            'id': '🎯 ID选择器',
+            'keyframes': '🔄 动画',
+            'key': '🔑 键',
+            'def': '🐍 Python函数'
+        };
+        for (const [type, items] of Object.entries(groups)) {
+            const label = typeLabels[type] || type;
+            md += `## ${label}\n\n`;
+            items.forEach(s => {
+                md += `- **\`${s.name}\`**  (行 ${s.line})`;
+                if (s.snippet) {
+                    const snippet = s.snippet.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    md += `\n  \`${snippet.substring(0, 80)}${snippet.length > 80 ? '…' : ''}\``;
+                }
+                md += '\n';
+            });
+            md += '\n';
+        }
+        md += `\n---\n*导出时间：${new Date().toLocaleString()}*\n`;
+        return md;
+    }
+
+    document.getElementById('copyMDBtn').addEventListener('click', () => {
+        const md = generateMarkdown();
+        navigator.clipboard.writeText(md).then(() => {
+            const btn = document.getElementById('copyMDBtn');
+            btn.textContent = '✅ 已复制';
+            setTimeout(() => btn.textContent = '📋 复制 Markdown', 1500);
+        });
+    });
+
+    document.getElementById('downloadMDBtn').addEventListener('click', () => {
+        const md = generateMarkdown();
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentFileName.replace(/\.[^.]+$/, '')}_结构分析.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('copyStructBtn').addEventListener('click', () => {
+        if (currentStructures.length === 0) return;
+        let text = `📄 ${currentFileName}\n`;
+        text += '═'.repeat(40) + '\n';
+        currentStructures.forEach(s => {
+            text += `[${s.type}] ${s.name} (行 ${s.line})\n`;
+            if (s.snippet) text += `  ${s.snippet.trim()}\n`;
+        });
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copyStructBtn');
+            btn.textContent = '✅ 已复制';
+            setTimeout(() => btn.textContent = '📄 复制结构', 1500);
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'o') { e.preventDefault();
+            fileInput.click(); }
+    });
+
+    console.log('🛠️ Code-Mate Pro 已加载');
+</script>
+</body>
+</html>
