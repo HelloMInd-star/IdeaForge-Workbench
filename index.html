@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Idea Forge · 创作工作台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a080c;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #b8a08a;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(14,11,16,0.6);
+            border: 1px solid rgba(167,139,250,0.08);
+            padding: 28px 32px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 1px solid rgba(167,139,250,0.06);
+            padding-bottom: 20px;
+            margin-bottom: 28px;
+        }
+        .header h1 {
+            font-weight: 300;
+            font-size: 28px;
+            letter-spacing: 10px;
+            color: #d4c0a8;
+        }
+        .header p {
+            font-size: 13px;
+            color: rgba(167,139,250,0.1);
+            letter-spacing: 4px;
+            margin-top: 6px;
+        }
+        .header .badge {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 10px;
+            color: rgba(167,139,250,0.06);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 2px 16px;
+            letter-spacing: 2px;
+        }
+
+        .workflow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: rgba(167,139,250,0.06);
+            letter-spacing: 2px;
+        }
+        .workflow span { color: rgba(167,139,250,0.04); }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 800px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 500px) { .grid-4 { grid-template-columns: 1fr; } }
+
+        .card {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 20px 18px 18px;
+            transition: 0.25s;
+            text-decoration: none;
+            color: #b8a08a;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+        .card:hover {
+            border-color: rgba(167,139,250,0.12);
+            background: rgba(20,16,24,0.4);
+        }
+        .card .icon { font-size: 28px; margin-bottom: 6px; }
+        .card .name { font-size: 17px; font-weight: 400; letter-spacing: 2px; color: #d4c0a8; }
+        .card .sub { font-size: 11px; color: rgba(167,139,250,0.08); letter-spacing: 2px; margin: 4px 0 10px; }
+        .card .desc { font-size: 13px; line-height: 1.7; color: rgba(167,139,250,0.06); flex: 1; }
+        .card .tag {
+            margin-top: 14px;
+            font-size: 10px;
+            color: rgba(167,139,250,0.04);
+            border-top: 1px solid rgba(167,139,250,0.02);
+            padding-top: 10px;
+            letter-spacing: 2px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: rgba(167,139,250,0.04);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            padding-bottom: 8px;
+        }
+
+        .output-preview {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 16px 20px;
+            margin-top: 12px;
+        }
+        .output-preview .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: rgba(167,139,250,0.06);
+        }
+        .output-preview .flow-row .step { color: rgba(167,139,250,0.04); letter-spacing: 2px; }
+        .output-preview .flow-row .arrow { color: rgba(167,139,250,0.02); }
+
+        .footer {
+            margin-top: 24px;
+            border-top: 1px solid rgba(167,139,250,0.02);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+            color: rgba(167,139,250,0.04);
+            letter-spacing: 2px;
+        }
+        .btn {
+            background: none;
+            border: 1px solid rgba(167,139,250,0.04);
+            color: rgba(167,139,250,0.06);
+            padding: 4px 16px;
+            cursor: pointer;
+            font-size: 10px;
+            letter-spacing: 2px;
+            transition: 0.2s;
+            font-family: 'Georgia', serif;
+        }
+        .btn:hover {
+            border-color: rgba(167,139,250,0.08);
+            color: rgba(167,139,250,0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <div class="header">
+        <h1>⚡ Idea Forge</h1>
+        <p>想法 → 结构化 → 代码分析 → 知识沉淀</p>
+        <span class="badge">v0.2 · 创作工作台 · 本地运行</span>
+    </div>
+
+    <div class="workflow">
+        <span>📥 想法</span><span>→</span>
+        <span>📦 结构化</span><span>→</span>
+        <span>🛠️ 代码分析</span><span>→</span>
+        <span>📄 导出</span>
+        <span style="color:rgba(167,139,250,0.02);">|</span>
+        <span style="color:rgba(167,139,250,0.02);">全流程离线 · 无依赖</span>
+    </div>
+
+    <div class="grid-4">
+
+        <div class="card" onclick="window.open('idea-forge.html', '_blank')">
+            <div class="icon">📥</div>
+            <div class="name">Idea Forge</div>
+            <div class="sub">想法锻造台</div>
+            <div class="desc">把模糊想法转成结构化文档。<br>内置 6 种提示词模板。</div>
+            <div class="tag">⚡ 游戏 · 工具 · README</div>
+        </div>
+
+        <div class="card" onclick="window.open('code-mate-pro.html', '_blank')">
+            <div class="icon">🛠️</div>
+            <div class="name">Code-Mate Pro</div>
+            <div class="sub">代码分析器</div>
+            <div class="desc">拖入代码 → 自动解析函数 / 类 / 配置。</div>
+            <div class="tag">📄 .html .js .py .css</div>
+        </div>
+
+        <div class="card" onclick="window.open('code-interpreter.html', '_blank')">
+            <div class="icon">🧠</div>
+            <div class="name">Code Interpreter</div>
+            <div class="sub">代码解释器</div>
+            <div class="desc">粘贴代码 → 逐行拆解，解释每个函数/变量。</div>
+            <div class="tag">🎯 游戏/动画专用</div>
+        </div>
+
+        <div class="card" onclick="window.open('project-catalog.html', '_blank')">
+            <div class="icon">📂</div>
+            <div class="name">Project Catalog</div>
+            <div class="sub">项目收录台</div>
+            <div class="desc">拖入文件夹 → 生成目录树，导出结构报告。</div>
+            <div class="tag">📁 收录项目快照</div>
+        </div>
+
+    </div>
+
+    <div class="section-title">📋 创作流总览</div>
+    <div class="output-preview">
+        <div class="flow-row">
+            <span class="step">📥 想法</span><span class="arrow">→</span>
+            <span class="step">🧩 套用模板</span><span class="arrow">→</span>
+            <span class="step">🔨 锻造为文档</span><span class="arrow">→</span>
+            <span class="step">💾 保存项目</span><span class="arrow">→</span>
+            <span class="step">🛠️ 代码分析</span><span class="arrow">→</span>
+            <span class="step">📄 导出</span><span class="arrow">→</span>
+            <span class="step">📚 知识沉淀</span>
+        </div>
+        <div style="margin-top:10px; font-size:11px; color:rgba(167,139,250,0.03); letter-spacing:1px;">
+            ⚡ 所有工具纯本地运行 · 数据存于浏览器 localStorage
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>📂 项目存档 · 自动保存在本地</span>
+        <span>
+            <button class="btn" onclick="localStorage.clear(); alert('已清空本地数据');">🗑️ 清空数据</button>
+            <span style="margin-left:8px;">v0.2</span>
+        </span>
+    </div>
+
+</div>
+<script>
+    console.log('⚡ Idea Forge 创作工作台已加载');
+    console.log('📥 Idea Forge · 🛠️ Code-Mate Pro · 🧠 Code Interpreter · 📂 Project Catalog');
+</script>
+</body>
+</html>
