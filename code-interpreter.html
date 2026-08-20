@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Interpreter · 代码解释器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a080c;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #b8a08a;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(14,11,16,0.6);
+            border: 1px solid rgba(167,139,250,0.08);
+            padding: 28px 32px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(167,139,250,0.06);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-weight: 300;
+            font-size: 28px;
+            letter-spacing: 8px;
+            color: #d4c0a8;
+        }
+        .header .sub {
+            font-size: 15px;
+            color: rgba(167,139,250,0.12);
+            letter-spacing: 3px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 20px 22px;
+        }
+        .panel-title {
+            font-size: 15px;
+            color: rgba(167,139,250,0.08);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(167,139,250,0.06);
+            color: #d4c0a8;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.9;
+            resize: vertical;
+            min-height: 200px;
+            transition: 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: rgba(167,139,250,0.15);
+        }
+
+        .output-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 16px 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow: auto;
+            font-size: 15px;
+            line-height: 1.9;
+            color: #b8a08a;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .output-box .placeholder {
+            color: rgba(167,139,250,0.04);
+            font-style: italic;
+        }
+
+        .quick-examples {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .quick-examples button {
+            background: rgba(20,16,24,0.3);
+            border: 1px solid rgba(167,139,250,0.02);
+            color: rgba(167,139,250,0.08);
+            padding: 6px 16px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .quick-examples button:hover {
+            border-color: rgba(167,139,250,0.08);
+            color: rgba(167,139,250,0.15);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .btn {
+            background: none;
+            border: 1px solid rgba(167,139,250,0.04);
+            color: rgba(167,139,250,0.08);
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 3px;
+            transition: 0.2s;
+            font-family: 'Georgia', serif;
+        }
+        .btn:hover {
+            border-color: rgba(167,139,250,0.12);
+            color: rgba(167,139,250,0.2);
+        }
+        .btn-primary {
+            border-color: rgba(167,139,250,0.08);
+            color: rgba(167,139,250,0.12);
+        }
+        .btn-primary:hover {
+            border-color: rgba(167,139,250,0.2);
+            color: rgba(167,139,250,0.25);
+        }
+
+        .status-msg {
+            font-size: 14px;
+            color: rgba(167,139,250,0.04);
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <div class="header">
+        <h1>🧠 Code Interpreter</h1>
+        <span class="sub">粘贴代码 · 逐行拆解</span>
+    </div>
+
+    <div class="grid-2">
+        <div class="panel">
+            <div class="panel-title">📝 输入代码</div>
+            <textarea id="codeInput" placeholder="粘贴一段 JavaScript / TypeScript / Python 代码，点击「解释代码」"></textarea>
+
+            <div class="quick-examples">
+                <button data-example="game">🎮 游戏主循环</button>
+                <button data-example="particle">✨ 粒子系统</button>
+                <button data-example="canvas">🖌️ Canvas 绘制</button>
+                <button data-example="collision">💥 碰撞检测</button>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-primary" id="explainBtn">📖 解释代码</button>
+                <button class="btn" id="clearBtn">清空</button>
+                <button class="btn" id="copyOutputBtn">📋 复制</button>
+            </div>
+            <div class="status-msg" id="statusMsg">就绪</div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">📖 解释结果</div>
+            <div class="output-box" id="outputBox">
+                <span class="placeholder">粘贴代码，点击「解释代码」…</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ================================================================
+    //  Code Interpreter · 代码解释器（字体已调大）
+    // ================================================================
+
+    const codeInput = document.getElementById('codeInput');
+    const outputBox = document.getElementById('outputBox');
+    const explainBtn = document.getElementById('explainBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyOutputBtn = document.getElementById('copyOutputBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    const EXAMPLES = {
+        game: `
+// 游戏主循环
+function gameLoop() {
+    update();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+gameLoop();`,
+        particle: `
+// 粒子系统
+class Particle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.life = 60;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+    }
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}`,
+        canvas: `
+// Canvas 绘制
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+ctx.fillStyle = '#0F0D1A';
+ctx.fillRect(0, 0, 800, 600);
+
+ctx.beginPath();
+ctx.arc(400, 300, 50, 0, Math.PI * 2);
+ctx.fillStyle = '#A78BFA';
+ctx.fill();
+ctx.stroke();`,
+        collision: `
+// 碰撞检测（圆形 vs 圆形）
+function checkCollision(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist < a.radius + b.radius;
+}`
+    };
+
+    function interpret(code) {
+        if (!code.trim()) return '⚠️ 请输入代码';
+        const lines = code.split('\n');
+        let output = '';
+        const isPython = code.includes('def ') && !code.includes('function');
+        output += `📌 语言：${isPython ? 'Python' : 'JavaScript'}\n`;
+        output += `📊 行数：${lines.length}\n`;
+        output += `═`.repeat(40) + '\n\n';
+
+        for (let i = 0; i < lines.length; i++) {
+            const raw = lines[i];
+            const trimmed = raw.trim();
+            if (!trimmed) { output += `\n`; continue; }
+            const lineNum = (i + 1).toString().padStart(3, ' ');
+            const indentStr = ' '.repeat(Math.floor((raw.search(/\S/) || 0) / 2));
+
+            let match = trimmed.match(/^function\s+(\w+)\s*\(/);
+            if (match) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🔹 定义函数「${match[1]}」\n    💡 调用方式：${match[1]}()\n`;
+                continue;
+            }
+            match = trimmed.match(/^class\s+(\w+)/);
+            if (match) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🔹 定义类「${match[1]}」\n    💡 用于创建对象实例\n`;
+                continue;
+            }
+            if (trimmed.includes('requestAnimationFrame')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🎯 requestAnimationFrame：浏览器动画循环 API\n    💡 每帧自动调用，实现流畅动画\n`;
+                continue;
+            }
+            if (trimmed.includes('getContext')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🖌️ getContext('2d')：获取 Canvas 2D 绘图上下文\n    💡 后续所有绘图操作都通过 ctx 调用\n`;
+                continue;
+            }
+            if (trimmed.includes('beginPath')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    ✏️ beginPath()：开始一条新路径\n    💡 每次绘制新图形前必须调用\n`;
+                continue;
+            }
+            if (trimmed.includes('arc(')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    ⭕ arc(x, y, radius, startAngle, endAngle)：绘制圆弧/圆形\n    💡 参数：圆心坐标、半径、起始/结束角度（弧度）\n`;
+                continue;
+            }
+            if (trimmed.includes('fillRect')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    📦 fillRect(x, y, w, h)：填充矩形\n    💡 参数：左上角坐标、宽度、高度\n`;
+                continue;
+            }
+            if (trimmed.includes('fillStyle')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🎨 fillStyle：设置填充颜色\n`;
+                const cm = trimmed.match(/['"]([^'"]*)['"]/);
+                if (cm) output += `    💡 当前颜色：${cm[1]}\n`;
+                continue;
+            }
+            if (trimmed.includes('Math.random')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🎲 Math.random()：生成 0~1 之间的随机数\n    💡 常用于粒子位置、颜色随机化\n`;
+                continue;
+            }
+            if (trimmed.includes('Math.sqrt')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    📐 Math.sqrt()：计算平方根\n    💡 常用于计算距离（勾股定理）\n`;
+                continue;
+            }
+            match = trimmed.match(/^(const|let|var)\s+(\w+)/);
+            if (match) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    📦 声明变量「${match[2]}」(${match[1]})\n`;
+                if (trimmed.includes('=')) output += `    💡 初始值：${trimmed.split('=')[1].trim()}\n`;
+                continue;
+            }
+            if (trimmed.match(/^(for|while)\s*\(/)) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🔁 ${trimmed.split('(')[0]} 循环\n    💡 重复执行内部代码块\n`;
+                continue;
+            }
+            if (trimmed.match(/^if\s*\(/)) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    🔀 if 条件判断\n`;
+                const cond = trimmed.match(/\(([^)]*)\)/);
+                if (cond) output += `    💡 条件：${cond[1]}\n`;
+                continue;
+            }
+            if (trimmed.includes('new ')) {
+                const nm = trimmed.match(/new\s+(\w+)/);
+                if (nm) {
+                    output += `${lineNum} ${indentStr}${trimmed}\n    🏗️ 创建「${nm[1]}」实例\n    💡 使用 new 关键字调用构造函数\n`;
+                    continue;
+                }
+            }
+            if (trimmed.startsWith('//') || trimmed.startsWith('#')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    💬 注释：${trimmed.replace(/^\/\/\s*/, '').replace(/^#\s*/, '')}\n`;
+                continue;
+            }
+            if (trimmed.includes('=>')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    ➡️ 箭头函数\n    💡 简写函数，自动绑定 this\n`;
+                continue;
+            }
+            if (trimmed.startsWith('import') || trimmed.startsWith('export')) {
+                output += `${lineNum} ${indentStr}${trimmed}\n    📦 ${trimmed.split(' ')[0]} 模块语句\n`;
+                continue;
+            }
+            if (trimmed) {
+                output += `${lineNum} ${indentStr}${trimmed}\n`;
+                const cm = trimmed.match(/^(\w+)\(/);
+                if (cm && !trimmed.includes('function') && !trimmed.includes('class')) {
+                    output += `    📞 调用函数：${cm[1]}()\n`;
+                } else {
+                    output += `    📝 执行语句\n`;
+                }
+            }
+        }
+
+        output += `\n═`.repeat(40) + `\n📋 摘要\n`;
+        const fc = (code.match(/function\s+\w+/g) || []).length;
+        const cc = (code.match(/class\s+\w+/g) || []).length;
+        const vc = (code.match(/const|let|var\s+\w+/g) || []).length;
+        output += `   - 函数：${fc} 个\n   - 类：${cc} 个\n   - 变量声明：${vc} 个\n`;
+        return output;
+    }
+
+    explainBtn.addEventListener('click', () => {
+        const code = codeInput.value;
+        if (!code.trim()) { statusMsg.textContent = '⚠️ 请先输入代码'; return; }
+        outputBox.innerHTML = interpret(code);
+        statusMsg.textContent = '✅ 解释完成';
+    });
+
+    clearBtn.addEventListener('click', () => {
+        codeInput.value = '';
+        outputBox.innerHTML = '<span class="placeholder">粘贴代码，点击「解释代码」…</span>';
+        statusMsg.textContent = '已清空';
+    });
+
+    copyOutputBtn.addEventListener('click', () => {
+        const text = outputBox.textContent;
+        if (!text || text.includes('placeholder')) { statusMsg.textContent = '⚠️ 没有内容可复制'; return; }
+        navigator.clipboard.writeText(text).then(() => {
+            statusMsg.textContent = '✅ 已复制到剪贴板';
+            setTimeout(() => statusMsg.textContent = '就绪', 1500);
+        });
+    });
+
+    document.querySelectorAll('.quick-examples button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const key = this.dataset.example;
+            const code = EXAMPLES[key];
+            if (code) {
+                codeInput.value = code;
+                statusMsg.textContent = `✅ 已加载示例：${this.textContent}`;
+                outputBox.innerHTML = interpret(code);
+                statusMsg.textContent = '✅ 已解释';
+            }
+        });
+    });
+
+    codeInput.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') { e.preventDefault();
+            explainBtn.click(); }
+    });
+
+    console.log('🧠 Code Interpreter 已加载');
+</script>
+</body>
+</html>
