@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Idea Forge · 想法锻造台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a080c;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            color: #b8a08a;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+        .app {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(14,11,16,0.6);
+            border: 1px solid rgba(167,139,250,0.08);
+            padding: 28px 32px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(167,139,250,0.06);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-weight: 300;
+            font-size: 28px;
+            letter-spacing: 8px;
+            color: #d4c0a8;
+        }
+        .header .sub {
+            font-size: 15px;
+            color: rgba(167,139,250,0.12);
+            letter-spacing: 3px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: rgba(8,6,12,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 20px 22px;
+        }
+        .panel-title {
+            font-size: 15px;
+            color: rgba(167,139,250,0.08);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            border-bottom: 1px solid rgba(167,139,250,0.02);
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(167,139,250,0.06);
+            color: #d4c0a8;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.9;
+            resize: vertical;
+            min-height: 200px;
+            transition: 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: rgba(167,139,250,0.15);
+        }
+
+        .prompt-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) { .prompt-grid { grid-template-columns: 1fr; } }
+
+        .prompt-btn {
+            background: rgba(20,16,24,0.4);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 12px 16px;
+            color: rgba(167,139,250,0.15);
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+            letter-spacing: 1px;
+            line-height: 1.6;
+        }
+        .prompt-btn:hover {
+            border-color: rgba(167,139,250,0.15);
+            background: rgba(30,22,40,0.4);
+            color: rgba(167,139,250,0.3);
+        }
+        .prompt-btn .icon { margin-right: 8px; }
+
+        .output-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(167,139,250,0.04);
+            padding: 16px 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow: auto;
+            font-size: 15px;
+            line-height: 1.9;
+            color: #b8a08a;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .output-box .placeholder {
+            color: rgba(167,139,250,0.04);
+            font-style: italic;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .btn {
+            background: none;
+            border: 1px solid rgba(167,139,250,0.04);
+            color: rgba(167,139,250,0.08);
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 3px;
+            transition: 0.2s;
+            font-family: 'Georgia', serif;
+        }
+        .btn:hover {
+            border-color: rgba(167,139,250,0.12);
+            color: rgba(167,139,250,0.2);
+        }
+        .btn-primary {
+            border-color: rgba(167,139,250,0.08);
+            color: rgba(167,139,250,0.12);
+        }
+        .btn-primary:hover {
+            border-color: rgba(167,139,250,0.2);
+            color: rgba(167,139,250,0.25);
+        }
+
+        .status-msg {
+            font-size: 14px;
+            color: rgba(167,139,250,0.04);
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+
+        .project-list {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .project-item {
+            padding: 6px 14px;
+            border-left: 2px solid rgba(167,139,250,0.04);
+            font-size: 14px;
+            color: rgba(167,139,250,0.06);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .project-item:hover {
+            border-left-color: rgba(167,139,250,0.15);
+            color: rgba(167,139,250,0.12);
+        }
+
+        .footer {
+            margin-top: 20px;
+            border-top: 1px solid rgba(167,139,250,0.02);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 14px;
+            color: rgba(167,139,250,0.04);
+            letter-spacing: 2px;
+        }
+        .footer .btn {
+            font-size: 13px;
+            padding: 4px 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <div class="header">
+        <h1>📥 Idea Forge</h1>
+        <span class="sub">想法 → 结构化 → 导出</span>
+    </div>
+
+    <div class="grid-2">
+        <div class="panel">
+            <div class="panel-title">📝 想法捕获</div>
+            <textarea id="ideaInput" placeholder="写下你的想法… 例如：坤牛应该有种蓄力感，像大地一样厚重。按住越久伤害越高，粒子向内收敛。"></textarea>
+
+            <div style="margin-top:14px;">
+                <div style="font-size:13px; color:rgba(167,139,250,0.04); letter-spacing:3px; margin-bottom:8px;">⚡ 一键套用提示词模板</div>
+                <div class="prompt-grid">
+                    <button class="prompt-btn" data-prompt="game"><span class="icon">🎮</span> 游戏原型</button>
+                    <button class="prompt-btn" data-prompt="tool"><span class="icon">🛠️</span> 交互工具</button>
+                    <button class="prompt-btn" data-prompt="visual"><span class="icon">📊</span> 可视化实验</button>
+                    <button class="prompt-btn" data-prompt="finance"><span class="icon">💰</span> 金融模型</button>
+                    <button class="prompt-btn" data-prompt="readme"><span class="icon">📄</span> README 初稿</button>
+                    <button class="prompt-btn" data-prompt="type"><span class="icon">📐</span> TypeScript 类型</button>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-primary" id="forgeBtn">🔨 锻造</button>
+                <button class="btn" id="clearBtn">清空</button>
+                <button class="btn" id="saveProjectBtn">💾 保存项目</button>
+            </div>
+            <div class="status-msg" id="statusMsg">就绪</div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">📦 结构化产出</div>
+            <div class="output-box" id="outputBox">
+                <span class="placeholder">输入想法，点击「锻造」…</span>
+            </div>
+            <div class="toolbar">
+                <button class="btn btn-primary" id="copyOutputBtn">📋 复制</button>
+                <button class="btn btn-primary" id="downloadOutputBtn">⬇️ 下载 .md</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>📚 项目库 · <span id="projectCount">0</span> 个存档</span>
+        <span>
+            <button class="btn" id="showProjectsBtn">📂 显示存档</button>
+            <button class="btn" id="clearProjectsBtn">🗑️ 清空所有</button>
+        </span>
+    </div>
+    <div id="projectListContainer" style="margin-top:10px;"></div>
+
+</div>
+
+<script>
+    // ================================================================
+    //  Idea Forge · 想法锻造台（字体已调大）
+    // ================================================================
+
+    const ideaInput = document.getElementById('ideaInput');
+    const outputBox = document.getElementById('outputBox');
+    const forgeBtn = document.getElementById('forgeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyOutputBtn = document.getElementById('copyOutputBtn');
+    const downloadOutputBtn = document.getElementById('downloadOutputBtn');
+    const saveProjectBtn = document.getElementById('saveProjectBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const projectListContainer = document.getElementById('projectListContainer');
+    const projectCount = document.getElementById('projectCount');
+
+    const PROMPTS = {
+        game: `请基于以下想法，生成一个游戏原型的设计文档：
+- 核心机制（1-2句话）
+- 操作方式（玩家如何交互）
+- 视觉风格（颜色、氛围）
+- 核心变量（影响玩法的关键参数）
+- 一句话总结（像一句广告词）
+
+想法：`,
+        tool: `请基于以下想法，生成一个交互工具的设计文档：
+- 工具用途（解决什么问题）
+- 核心交互方式（点击/拖拽/输入）
+- 输出结果（用户能得到什么）
+- 技术路线（适合用什么实现）
+
+想法：`,
+        visual: `请基于以下想法，生成一个可视化实验的设计文档：
+- 可视化对象（展示什么数据/概念）
+- 交互方式（用户如何探索）
+- 视觉风格（配色、布局）
+- 核心算法（驱动可视化的逻辑）
+
+想法：`,
+        finance: `请基于以下想法，生成一个金融模型的设计文档：
+- 模型用途（分析什么）
+- 核心公式或逻辑
+- 输入参数（用户需要提供什么）
+- 输出结果（用户能得到什么结论）
+
+想法：`,
+        readme: `请基于以下想法，生成一份项目 README 初稿：
+- 项目名称
+- 一句话简介
+- 核心功能
+- 技术栈
+- 快速开始
+
+想法：`,
+        type: `请基于以下想法，生成 TypeScript 类型定义：
+- 主要接口或类
+- 核心属性
+- 关键方法
+- 类型约束
+
+想法：`
+    };
+
+    function forge() {
+        const idea = ideaInput.value.trim();
+        if (!idea) {
+            statusMsg.textContent = '⚠️ 请先输入一个想法';
+            return;
+        }
+        let output = '';
+        let templateUsed = '';
+        for (const [key, template] of Object.entries(PROMPTS)) {
+            if (idea.includes(template)) {
+                templateUsed = key;
+                break;
+            }
+        }
+        if (templateUsed) {
+            const clean = idea.replace(/^.*?想法：/, '').trim();
+            output = `## 📌 结构化设计\n\n> 基于 "${templateUsed}" 模板生成\n\n${idea}`;
+        } else {
+            output = `## 📌 想法结构化\n\n**原始想法：**\n${idea}\n\n---\n\n### 🧩 核心要素提取\n- **核心机制**：（待补充）\n- **操作方式**：（待补充）\n- **视觉风格**：（待补充）\n- **关键技术**：（待补充）\n\n---\n*此文档为自动生成的结构化框架，请填入具体内容。*`;
+        }
+        outputBox.innerHTML = output;
+        statusMsg.textContent = '✅ 锻造完成';
+    }
+
+    forgeBtn.addEventListener('click', forge);
+    clearBtn.addEventListener('click', () => {
+        ideaInput.value = '';
+        outputBox.innerHTML = '<span class="placeholder">输入想法，点击「锻造」…</span>';
+        statusMsg.textContent = '已清空';
+    });
+
+    copyOutputBtn.addEventListener('click', () => {
+        const text = outputBox.textContent;
+        if (!text || text.includes('placeholder')) { statusMsg.textContent = '⚠️ 没有内容可复制'; return; }
+        navigator.clipboard.writeText(text).then(() => {
+            statusMsg.textContent = '✅ 已复制到剪贴板';
+            setTimeout(() => statusMsg.textContent = '就绪', 1500);
+        });
+    });
+
+    downloadOutputBtn.addEventListener('click', () => {
+        const text = outputBox.textContent;
+        if (!text || text.includes('placeholder')) { statusMsg.textContent = '⚠️ 没有内容可下载'; return; }
+        const now = new Date().toISOString().slice(0, 10);
+        const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `想法锻造_${now}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        statusMsg.textContent = '✅ 已下载';
+    });
+
+    document.querySelectorAll('.prompt-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const key = this.dataset.prompt;
+            const template = PROMPTS[key];
+            if (template) {
+                const current = ideaInput.value;
+                if (current && !current.includes('想法：')) {
+                    ideaInput.value = current + '\n\n' + template;
+                } else {
+                    ideaInput.value = template;
+                }
+                ideaInput.focus();
+                statusMsg.textContent = `✅ 已加载 ${key} 模板`;
+            }
+        });
+    });
+
+    function loadProjects() {
+        try { return JSON.parse(localStorage.getItem('idea_forge_projects') || '[]'); } catch { return []; }
+    }
+
+    function saveProjects(projects) {
+        localStorage.setItem('idea_forge_projects', JSON.stringify(projects));
+        updateProjectList();
+    }
+
+    function updateProjectList() {
+        const projects = loadProjects();
+        projectCount.textContent = projects.length;
+        if (projects.length === 0) { projectListContainer.innerHTML = ''; return; }
+        let html = '<div class="project-list">';
+        projects.forEach((p, i) => {
+            const preview = p.slice(0, 60) + (p.length > 60 ? '…' : '');
+            html += `<div class="project-item" data-index="${i}">${preview}</div>`;
+        });
+        html += '</div>';
+        projectListContainer.innerHTML = html;
+        document.querySelectorAll('.project-item').forEach(el => {
+            el.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.index);
+                const projects = loadProjects();
+                if (projects[idx]) {
+                    ideaInput.value = projects[idx];
+                    statusMsg.textContent = `📂 已加载项目 ${idx + 1}`;
+                }
+            });
+        });
+    }
+
+    saveProjectBtn.addEventListener('click', () => {
+        const idea = ideaInput.value.trim();
+        if (!idea) { statusMsg.textContent = '⚠️ 没有内容可保存'; return; }
+        const projects = loadProjects();
+        projects.push(idea);
+        saveProjects(projects);
+        statusMsg.textContent = `✅ 已保存项目 (共 ${projects.length} 个)`;
+    });
+
+    document.getElementById('showProjectsBtn').addEventListener('click', () => {
+        const projects = loadProjects();
+        if (projects.length === 0) { statusMsg.textContent = '📂 暂无存档项目'; return; }
+        statusMsg.textContent = `📂 显示 ${projects.length} 个项目（点击加载）`;
+        updateProjectList();
+    });
+
+    document.getElementById('clearProjectsBtn').addEventListener('click', () => {
+        if (confirm('确定要清空所有项目存档吗？')) {
+            localStorage.removeItem('idea_forge_projects');
+            updateProjectList();
+            statusMsg.textContent = '🗑️ 已清空所有存档';
+        }
+    });
+
+    updateProjectList();
+    console.log('📥 Idea Forge 已加载');
+</script>
+</body>
+</html>
